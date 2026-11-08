@@ -46,13 +46,17 @@ Steps
 7. Watch `journalctl -u outline-prefix-compat -o cat`: `stats outline=N strip=M raw=K`,
    with no `upstream-fail`.
 
-Only if the server has more than one public IPv4 and clients connect to the
-non-primary one: UDP replies leave from the primary IP and clients drop them.
-Add the following (nftables) and persist it in /etc/nftables.conf:
-  table ip raw   { chain prerouting  { type filter hook prerouting priority raw; ip daddr <CLIENT_IP> udp dport <PORT> notrack } }
-  nat postrouting: oifname "<IFACE>" udp sport <PORT> snat to <CLIENT_IP>:<PORT>
-Without the notrack rule, SNAT cannot change the existing return flow and
-replies leave from a random source port.
+UDP on servers with more than one IPv4
+Check `hostname` in /opt/outline/persisted-state/shadowbox_server_config.json.
+If it is not the primary address (the source of the default route), outline-ss-server
+answers UDP from the primary address and clients drop the replies, so DNS and QUIC
+through Happ break. Run on the server:
+  bash install-udp-fix.sh <ADVERTISED_IP> <PRIMARY_IP> <PORT>
+It DNATs UDP sent to the advertised IP onto the primary IP, so conntrack restores
+the advertised IP as the reply source. Clients that use the primary IP are unaffected.
+Verify from a host whose network does not filter that UDP port (many office networks
+do): send a Shadowsocks UDP DNS query to each IP and check that the reply comes from
+the same IP:port.
 
 Side effect: outline-ss-server now sees TCP clients as 127.0.0.1, so per-country
 and per-ASN TCP metrics in the Outline Manager become "unknown". Per-key data

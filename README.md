@@ -13,6 +13,8 @@ the server's keys. Everything else is forwarded unchanged. UDP is not touched.
 - `outline-prefix-compat.c`: the proxy.
 - `install.sh`: installs it as a systemd service with a fail-safe iptables redirect.
 - `selftest.py`: checks Outline, plain, and Happ handshakes against a server.
+- `install-udp-fix.sh`: only for servers that advertise a secondary IPv4; makes UDP
+  replies come from the address the client used.
 - `PROMPT.md`: step-by-step instructions, including build, verification, and rollback.
 
 Build (static, runs on Ubuntu 20+):
